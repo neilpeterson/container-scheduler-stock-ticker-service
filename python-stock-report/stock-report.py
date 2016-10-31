@@ -42,7 +42,9 @@ while True:
             r = requests.get(stockurl + symbol)
             s = json.loads(r.text[18:-1])
             price = (s['LastPrice'])
-            l.append(symbol + ' = ' + str(s['LastPrice']) + '\n')  
+            l.append(symbol + ' = ' + str(s['LastPrice']) + '\n')
+
+        print(l)  
 
         # send email
         smtpserver = smtplib.SMTP("smtp.gmail.com",587)

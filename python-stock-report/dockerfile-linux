@@ -2,8 +2,12 @@ FROM python
 
 ENV gmuser xneilpetersonx@gmail.com
 ENV gmpass TempForDemo2016
+ENV azurestoracct twoqueue
+ENV azurequeue myqueue
+ENV azurequeuekey vCUrUB+0H0MAI/uozyqJ1NW0MFlIsCs31BJihIwIIxCEb7CXHR2luRb2fopNMPmvWFDrNZpqxCW5uKdJQjxVtA==;
 
 RUN pip install requests
+RUN pip install azure-storage
 
 RUN mkdir /stock-report && mkdir /tmp-app && \
     git clone https://github.com/neilpeterson/container-stock-app-service.git /tmp-app && \
