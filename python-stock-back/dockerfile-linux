@@ -1,0 +1,15 @@
+FROM python
+
+ENV azurestoracct <account>
+ENV azurequeue <queue name>
+ENV azurequeuekey <queue key>
+ENV image neilpeterson/stock-report
+
+RUN pip install requests
+RUN pip install azure-storage
+RUN mkdir /queue-worker && mkdir /tmp-app && \
+    git clone https://github.com/neilpeterson/container-stock-app-service.git /tmp-app && \
+    cp -rf /tmp-app/python-stock-back/* /queue-worker && \
+    rm -rf /tmp-app
+
+ENTRYPOINT ["python", "/queue-worker/queue-worker.py"]

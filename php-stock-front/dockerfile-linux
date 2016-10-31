@@ -1,0 +1,13 @@
+FROM tutum/apache-php
+
+ENV connectionString <storage connection string>
+ENV azurequeue <queue name>
+
+RUN apt-get update && apt-get install git -y
+
+RUN rm /app/* && mkdir /tmp-app && \
+    git clone https://github.com/neilpeterson/container-stock-app-service.git /tmp-app && \
+    cp -rf /tmp-app/php-stock-front/* /app && \
+    rm -rf /tmp-app
+
+CMD /run.sh

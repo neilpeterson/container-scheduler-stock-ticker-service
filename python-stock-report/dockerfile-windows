@@ -1,0 +1,18 @@
+FROM windowsservercore
+
+ENV gmuser email@gmail.com
+ENV gmpass password
+
+RUN powershell.exe -Command \
+    $ErrorActionPreference = 'Stop'; \
+    wget https://www.python.org/ftp/python/3.5.1/python-3.5.1.exe -OutFile c:\python-3.5.1.exe ; \
+    Start-Process c:\python-3.5.1.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -Wait ; \
+    Remove-Item c:\python-3.5.1.exe -Force
+
+RUN pip install requests
+
+RUN powershell -Command \
+    mkdir c:\stock-report ; \
+    Invoke-WebRequest -Method Get -Uri "https://raw.githubusercontent.com/neilpeterson/container-stock-app/master/python-stock-report/stock-report.py-service" -OutFile c:\stock-report\stock-report.py
+
+ENTRYPOINT ["python", "/stock-report/stock-report.py"]
