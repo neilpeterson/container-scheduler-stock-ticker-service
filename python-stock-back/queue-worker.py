@@ -6,8 +6,6 @@ import random
 import requests
 import time
 
-## CURENT NOTES - Things are not efficient, workers are stopping before queue cleared, which starts up more, etc. etc. Process works but not well.
-
 # Grab environment variables.
 azurestoracct = os.environ['azurestoracct']
 azurequeue = os.environ['azurequeue']
@@ -24,7 +22,7 @@ if "chronos" in os.environ:
 while True:
 
     print("Top")
-    time.sleep(1)
+    time.sleep(5)
 
     # Set up azure queue / get count of messages on queue (count).
     queue_service = QueueService(account_name=azurestoracct, account_key=azurequeuekey)
@@ -51,19 +49,15 @@ while True:
 
         print("Items on Queue: " + str(count) + " --- Current Workers: " + str(containers_count) + " --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(start_workers_count))
 
-        #### STUCK RIGHT HERE - OPERATOR IS NOT WORKING
         # Start additional workers if needed
         if start_workers_count >= needed_workers and start_workers_count > 0:
 
             print("Need to Deploy Workers")
 
             # Loop through worker deployment.
-            #while start_workers_count >= needed_workers:
             while needed_workers >= start_workers_count and needed_workers > 0:
 
-                i = needed_workers
-                needed_workers = 0
-                while i > 0:
+                while needed_workers > 0:
 
                     print("Starting worker container")
 
@@ -74,31 +68,35 @@ while True:
                     requests.post(docker + docker_start_response['Id'] + "/start")
 
                     # Decrement loop counter
-                    i -= 1
-                    print(i)
+                    needed_workers -= 1
 
-        else: 
+        else:
+            # Remove workers if needed. 
             if start_workers_count <= needed_workers and start_workers_count < 0:
 
-                print("Need to Remove Workers")
+                # Get containers
+                headers = {'Content-Type': 'application/json'}
+                docker_get_response = json.loads(requests.get(docker + "json?all=1&before=8dfafdbc3a40&size=1").text)
 
-                # Stop and remove workers
-                while start_workers_count < needed_workers:
+                # Set flag for list selection - this will remove 0,1,2...
+                container_list_position = 0
 
-                    headers = {'Content-Type': 'application/json'}
-                    docker_get_response = json.loads(requests.get(docker + "json?all=1&before=8dfafdbc3a40&size=1").text)
+                # Loop through count of workers to stop (negative number / remove).
+                while start_workers_count <= -1:
+                   
+                    # Verify that container is a worker.
+                    if docker_get_response[container_list_position]['Image'] == image:
 
-                    for container in docker_get_response:                        
-                        
-                        if container['Image'] == image:
+                        # Remove container.
+                        id = docker_get_response[container_list_position]['Id']
+                        print("Removing container: " + id)
+                        headers = {'Content-Type': 'application/json'}
+                        requests.post(docker + id + "/stop", headers=headers)
+                        requests.delete(docker + id, headers=headers)
 
-                            print("Removing contianer: " + container['Image'])
-                            
-                            id = container['Id'] 
-                            headers = {'Content-Type': 'application/json'}
-                            requests.post(docker + id + "/stop", headers=headers)
-                            requests.delete(docker + id, headers=headers)      
+                    # Increment list position so that next in list is removed.
+                    container_list_position += 1
+                    # Increment count of workers so that loop is stopped at specific position.
+                    start_workers_count += 1
 
-                            # Increment loop counter
-                            start_workers_count += 1
 
