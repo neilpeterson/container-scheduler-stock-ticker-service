@@ -22,7 +22,7 @@ if "chronos" in os.environ:
 while True:
 
     print("Top")
-    time.sleep(5)
+    #time.sleep(5)
 
     # Set up azure queue / get count of messages on queue (count).
     queue_service = QueueService(account_name=azurestoracct, account_key=azurequeuekey)
@@ -98,5 +98,3 @@ while True:
                     container_list_position += 1
                     # Increment count of workers so that loop is stopped at specific position.
                     start_workers_count += 1
-
-

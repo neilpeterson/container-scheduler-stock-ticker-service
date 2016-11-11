@@ -20,33 +20,38 @@ l = []
 h = socket.gethostname()
 
 while True:
+    print(h)
     
-    # set up azure queue
-    queue_service = QueueService(account_name=azurestoracct, account_key=azurequeuekey)
-    
-    # get message from azure queue
+    # Get messages from Azure queue.
+    queue_service = QueueService(account_name=azurestoracct, account_key=azurequeuekey)   
     messages = queue_service.get_messages(azurequeue, num_messages=5)
     
     for message in messages:
 
-         # delete message from azure queue
-        queue_service.delete_message(azurequeue, message.id, message.pop_receipt)
-
-        # data from queue
+        # Get symbols and email address from each message.
         s = message.content.split(':')
         symbols = s[0].split(';')
         email = s[1]
 
-        # get stock quote and populate list
+        # Get stock quote and populate list.
         for symbol in symbols:
-            r = requests.get(stockurl + symbol)
-            s = json.loads(r.text[18:-1])
-            price = (s['LastPrice'])
-            l.append(symbol + ' = ' + str(s['LastPrice']) + '\n')
+            try:
+                time.sleep(5)
+                r = requests.get(stockurl + symbol)
+                print(r)
+                s = json.loads(r.text[18:-1])
+                price = (s['LastPrice'])
+                l.append(symbol + ' = ' + str(s['LastPrice']) + '\n')
 
-        print(l)  
+                # Delete message from queue.
+                queue_service.delete_message(azurequeue, message.id, message.pop_receipt)
 
-        # send email
+            except:
+                
+                # Temp fix for HTTP exceptions. The message should remain on the queue and re-processed.
+                pass
+
+        # Send emial stock repor.
         smtpserver = smtplib.SMTP("smtp.gmail.com",587)
         smtpserver.ehlo()
         smtpserver.starttls()
@@ -57,4 +62,5 @@ while True:
         smtpserver.sendmail(gmuser, email, msg)
         smtpserver.close()
 
+        # Clear stock report list.
         del l[:]
