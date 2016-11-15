@@ -10,7 +10,7 @@ import time
 azurestoracct = os.environ['azurestoracct']
 azurequeue = os.environ['azurequeue']
 azurequeuekey = os.environ['azurequeuekey'] + "==;"
-docker_image = os.environ['image']
+docker_image = os.environ['docker_image']
 docker_service = os.environ['docker_service']
 queue_length = os.environ['queuelength']
 
