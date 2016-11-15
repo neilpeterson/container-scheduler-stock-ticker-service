@@ -1,10 +1,10 @@
 FROM python
 
-ENV gmuser xneilpetersonx@gmail.com
-ENV gmpass TempForDemo2016
-ENV azurestoracct twoqueue
-ENV azurequeue myqueue
-ENV azurequeuekey vCUrUB+0H0MAI/uozyqJ1NW0MFlIsCs31BJihIwIIxCEb7CXHR2luRb2fopNMPmvWFDrNZpqxCW5uKdJQjxVtA==;
+ENV gmuser <replace>
+ENV gmpass <replace>
+ENV azurestoracct <replace>
+ENV azurequeue <replace>
+ENV azurequeuekey <replace>
 
 RUN pip install requests
 RUN pip install azure-storage
