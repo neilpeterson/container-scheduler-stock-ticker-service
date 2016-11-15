@@ -10,9 +10,9 @@ import time
 azurestoracct = os.environ['azurestoracct']
 azurequeue = os.environ['azurequeue']
 azurequeuekey = os.environ['azurequeuekey'] + "==;"
-image = os.environ['image']
-queue_length = os.environ['queuelength']
+docker_image = os.environ['image']
 docker_service = os.environ['docker_service']
+queue_length = os.environ['queuelength']
 
 if "docker" in os.environ:
     docker = os.environ['docker']
@@ -47,5 +47,5 @@ while True:
                 print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: " + str(replica_count) + " --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(start_workers_count))
 
                 # Scale Docker service to meet queue / worker ratio.
-                jstring = json.loads('{"Name":"' + docker_service + '","TaskTemplate":{"ContainerSpec":{"Image":"' + image +'"}},"Mode":{"Replicated": {"Replicas":' + str(needed_workers) + '}}}')
+                jstring = json.loads('{"Name":"' + docker_service + '","TaskTemplate":{"ContainerSpec":{"Image":"' + docker_image +'"}},"Mode":{"Replicated": {"Replicas":' + str(needed_workers) + '}}}')
                 post = requests.post(docker + "services/" + service_id + "/update?version=" + str(service_version), data=json.dumps(jstring), headers=headers)
