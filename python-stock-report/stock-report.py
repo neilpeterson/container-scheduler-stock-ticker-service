@@ -20,8 +20,7 @@ l = []
 h = socket.gethostname()
 
 while True:
-    print(h)
-    
+  
     # Get messages from Azure queue.
     queue_service = QueueService(account_name=azurestoracct, account_key=azurequeuekey)   
     messages = queue_service.get_messages(azurequeue, num_messages=5)
@@ -38,7 +37,6 @@ while True:
             try:
                 time.sleep(5)
                 r = requests.get(stockurl + symbol)
-                print(r)
                 s = json.loads(r.text[18:-1])
                 price = (s['LastPrice'])
                 l.append(symbol + ' = ' + str(s['LastPrice']) + '\n')
