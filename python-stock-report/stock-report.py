@@ -35,30 +35,36 @@ while True:
         # Get stock quote and populate list.
         for symbol in symbols:
             try:
-                time.sleep(5)
+                #time.sleep(5)
                 r = requests.get(stockurl + symbol)
                 s = json.loads(r.text[18:-1])
                 price = (s['LastPrice'])
-                l.append(symbol + ' = ' + str(s['LastPrice']) + '\n')
 
-                # Delete message from queue.
-                queue_service.delete_message(azurequeue, message.id, message.pop_receipt)
+                if price:
+                    l.append(symbol + ' = ' + str(s['LastPrice']) + '\n')
+
+                    # Delete message from queue.
+                    queue_service.delete_message(azurequeue, message.id, message.pop_receipt)
+
+                    # Send emial stock repor.
+                    smtpserver = smtplib.SMTP("smtp.gmail.com",587)
+                    smtpserver.ehlo()
+                    smtpserver.starttls()
+                    smtpserver.ehlo()
+                    smtpserver.login(gmuser,gmpass)
+                    header = 'To:' + email  + '\n' + 'From: ' + gmuser + '\n' + 'Subject:' + h + '\n'
+                    msg = header + ''.join(l)
+                    smtpserver.sendmail(gmuser, email, msg)
+                    smtpserver.close()
+
+                    # Clear stock report list.
+                    del l[:]                    
+                
+                else:
+                    # Temp fix for HTTP exceptions. The message should remain on the queue and re-processed.
+                    pass
 
             except:
                 
                 # Temp fix for HTTP exceptions. The message should remain on the queue and re-processed.
                 pass
-
-        # Send emial stock repor.
-        smtpserver = smtplib.SMTP("smtp.gmail.com",587)
-        smtpserver.ehlo()
-        smtpserver.starttls()
-        smtpserver.ehlo()
-        smtpserver.login(gmuser,gmpass)
-        header = 'To:' + email  + '\n' + 'From: ' + gmuser + '\n' + 'Subject:' + h + '\n'
-        msg = header + ''.join(l)
-        smtpserver.sendmail(gmuser, email, msg)
-        smtpserver.close()
-
-        # Clear stock report list.
-        del l[:]
