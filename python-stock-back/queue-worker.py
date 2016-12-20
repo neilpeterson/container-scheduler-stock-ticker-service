@@ -17,8 +17,8 @@ queue_length = os.environ['queuelength']
 if "docker" in os.environ:
     docker = os.environ['docker']
 
-if "chronos" in os.environ:
-    chronos = os.environ['chronos']
+if "marathon" in os.environ:
+    marathon = os.environ['marathon']
 
 while True:
 
@@ -29,7 +29,9 @@ while True:
             
     if "docker" in os.environ:
 
-        # Get Docker service from Docker API.
+        print("Docker")
+
+        # Get Docker service from Docker API - check for service (docker_service)
         headers = {'Content-Type': 'application/json'}
         if (requests.get(docker + "/services/" + docker_service)):
 
@@ -52,9 +54,30 @@ while True:
 
             # Determine how many workers are required
             needed_workers = math.ceil(count/int(queue_length))  
-            #start_workers_count = math.ceil(needed_workers - replica_count)
-
+            
             print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: No Service --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(needed_workers))
 
+            # Service does not exsist, create it
             jstring = json.loads('{"Name":"' + docker_service + '","TaskTemplate":{"ContainerSpec":{"Image":"' + docker_image +'"}},"Mode":{"Replicated": {"Replicas":' + str(needed_workers) + '}}}')
             post = requests.post(docker + "services/create", data=json.dumps(jstring), headers=headers)
+
+    if "marathon" in os.environ:
+
+        print("Marathon")
+
+        # Get marathon Task
+
+        headers = {'Content-Type': 'application/json'}
+        apps = json.loads((requests.get('http://172.16.0.5/marathon/v2/apps')).text)
+
+	### WORKING HERE        
+
+        #print(apps)        
+        print(apps['apps'][2]['container'])
+
+        # Determine how many workers are required
+        #needed_workers = math.ceil(count/int(queue_length))  
+        #start_workers_count = math.ceil(needed_workers - '''<update from marathon>''')
+
+        #print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: " + str('''<update from marathon>''') + " --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(start_workers_count))
+
