@@ -63,21 +63,24 @@ while True:
 
     if "marathon" in os.environ:
 
-        print("Marathon")
-
         # Get marathon Task
 
-        headers = {'Content-Type': 'application/json'}
-        apps = json.loads((requests.get('http://172.16.0.5/marathon/v2/apps')).text)
+        if (requests.get(marathon + docker_service)):
 
-	### WORKING HERE        
+            service = json.loads((requests.get(marathon + docker_service)).text)
 
-        #print(apps)        
-        print(apps['apps'][2]['container'])
+            print(service['app']['instances'])
 
-        # Determine how many workers are required
-        #needed_workers = math.ceil(count/int(queue_length))  
-        #start_workers_count = math.ceil(needed_workers - '''<update from marathon>''')
+        else:
 
-        #print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: " + str('''<update from marathon>''') + " --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(start_workers_count))
+            print("No")
+
+            # Determine how many workers are required
+            needed_workers = math.ceil(count/int(queue_length))  
+            
+            print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: No Service --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(needed_workers))
+
+
+
+
 
