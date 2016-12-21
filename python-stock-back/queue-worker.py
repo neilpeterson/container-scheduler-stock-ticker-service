@@ -1,10 +1,8 @@
-from azure.storage.queue import QueueService
 import json
 import math
 import os
-import random
 import requests
-import time
+from azure.storage.queue import QueueService
 
 # Grab environment variables.
 azurestoracct = os.environ['azurestoracct']
@@ -33,7 +31,7 @@ while True:
 
         # Get Docker service from Docker API - check for service (docker_service)
         headers = {'Content-Type': 'application/json'}
-        if (requests.get(docker + "/services/" + docker_service)):
+        if (requests.get(docker + "/services/" + docker_service)): # How to combine this request with the one below?
 
             service = json.loads((requests.get(docker + "/services/" + docker_service)).text)
             service_version = service['Version']['Index']
@@ -41,9 +39,10 @@ while True:
             service_id = service['ID']
 
             # Determine how many workers are required
-            needed_workers = math.ceil(count/int(queue_length))  
+            needed_workers = math.ceil(count/int(queue_length))
             start_workers_count = math.ceil(needed_workers - replica_count)
 
+            # Output
             print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: " + str(replica_count) + " --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(start_workers_count))
 
             # Scale Docker service to meet queue / worker ratio.
@@ -55,6 +54,7 @@ while True:
             # Determine how many workers are required
             needed_workers = math.ceil(count/int(queue_length))  
             
+            # Output
             print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: No Service --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(needed_workers))
 
             # Service does not exsist, create it
@@ -63,13 +63,28 @@ while True:
 
     if "marathon" in os.environ:
 
+        print("marathon")
+        
         # Get marathon Task
+        if (requests.get(marathon + docker_service)): # How to combine this request with the one below?
 
-        if (requests.get(marathon + docker_service)):
-
+            # Get app information
             service = json.loads((requests.get(marathon + docker_service)).text)
+            replica_count = service['app']['instances']
 
-            print(service['app']['instances'])
+            # Determine how many workers are required
+            needed_workers = math.ceil(count/int(queue_length))  
+            start_workers_count = math.ceil(needed_workers - replica_count)
+
+            # Output
+            print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: " + str(replica_count) + " --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(start_workers_count))
+
+            # Scale app to meet queue / worker ratio - getting response 409 when needed = 0, may want to check for 0 and remove app.
+            headers = {'Content-Type': 'application/json'}
+            jstring = json.loads('{"id": "/stock-report","cmd": null,"cpus": 0.1,"mem": 32,"disk": 0,"instances":' + str(needed_workers) + ',"container": {"type": "DOCKER","volumes": [],"docker": {"image": "neilpeterson/stock-report-service","network": "BRIDGE","privileged": false,"parameters": [],"forcePullImage": false}}}')
+            post = requests.put(marathon + docker_service, data=json.dumps(jstring), headers=headers)
+            print (post)
+
 
         else:
 
