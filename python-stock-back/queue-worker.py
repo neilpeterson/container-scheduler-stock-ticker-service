@@ -30,9 +30,8 @@ while True:
         print("Docker")
 
         # Get Docker service from Docker API - check for service (docker_service)
-        headers = {'Content-Type': 'application/json'}
-        if (requests.get(docker + "/services/" + docker_service)): # How to combine this request with the one below?
-
+        
+        if (requests.get(docker + "/services/" + docker_service)):
             service = json.loads((requests.get(docker + "/services/" + docker_service)).text)
             service_version = service['Version']['Index']
             replica_count = service['Spec']['Mode']['Replicated']['Replicas']
@@ -45,7 +44,8 @@ while True:
             # Output
             print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: " + str(replica_count) + " --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(start_workers_count))
 
-            # Scale Docker service to meet queue / worker ratio.
+            # Scale Docker service to meet queue / worker ratio
+            headers = {'Content-Type': 'application/json'} 
             jstring = json.loads('{"Name":"' + docker_service + '","TaskTemplate":{"ContainerSpec":{"Image":"' + docker_image +'"}},"Mode":{"Replicated": {"Replicas":' + str(needed_workers) + '}}}')
             post = requests.post(docker + "services/" + service_id + "/update?version=" + str(service_version), data=json.dumps(jstring), headers=headers)
 
@@ -65,8 +65,8 @@ while True:
 
         print("marathon")
         
-        # Get marathon Task
-        if (requests.get(marathon + docker_service)): # How to combine this request with the one below?
+        # Get marathon Task        
+        if (requests.get(marathon + docker_service)):
 
             # Get app information
             service = json.loads((requests.get(marathon + docker_service)).text)
@@ -79,21 +79,33 @@ while True:
             # Output
             print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: " + str(replica_count) + " --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(start_workers_count))
 
-            # Scale app to meet queue / worker ratio - getting response 409 when needed = 0, may want to check for 0 and remove app.
-            headers = {'Content-Type': 'application/json'}
-            jstring = json.loads('{"id": "/stock-report","cmd": null,"cpus": 0.1,"mem": 32,"disk": 0,"instances":' + str(needed_workers) + ',"container": {"type": "DOCKER","volumes": [],"docker": {"image": "neilpeterson/stock-report-service","network": "BRIDGE","privileged": false,"parameters": [],"forcePullImage": false}}}')
-            post = requests.put(marathon + docker_service, data=json.dumps(jstring), headers=headers)
-            print (post)
+            if needed_workers == 0:
 
+                requests.delete(marathon + docker_service)
+
+            else:
+
+                # Scale app to meet queue / worker ratio - getting response 409 when needed = 0, may want to check for 0 and remove app.
+                headers = {'Content-Type': 'application/json'}            
+                jstring = json.loads('{"id": "/stock-report","cmd": null,"cpus": 0.1,"mem": 32,"disk": 0,"instances":' + str(needed_workers) + ',"container": {"type": "DOCKER","volumes": [],"docker": {"image": "neilpeterson/stock-report-service","network": "BRIDGE","privileged": false,"parameters": [],"forcePullImage": false}}}')
+                post = requests.put(marathon + docker_service, data=json.dumps(jstring), headers=headers)
 
         else:
 
-            print("No")
-
             # Determine how many workers are required
             needed_workers = math.ceil(count/int(queue_length))  
-            
+
+            # Output
             print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: No Service --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(needed_workers))
+
+            if needed_workers != 0:
+            
+                # Application does not exsist, create it
+                headers = {'Content-Type': 'application/json'}
+                jstring = json.loads('{"id": "/stock-report","cmd": null,"cpus": 0.1,"mem": 32,"disk": 0,"instances":' + str(needed_workers) + ',"container": {"type": "DOCKER","volumes": [],"docker": {"image": "neilpeterson/stock-report-service","network": "BRIDGE","privileged": false,"parameters": [],"forcePullImage": false}}}')
+                post = requests.put(marathon + docker_service, data=json.dumps(jstring), headers=headers)
+                
+
 
 
 
