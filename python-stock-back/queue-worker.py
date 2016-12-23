@@ -12,12 +12,6 @@ docker_image = os.environ['docker_image']
 docker_service = os.environ['docker_service']
 queue_length = os.environ['queuelength']
 
-if "docker" in os.environ:
-    docker = os.environ['docker']
-
-if "marathon" in os.environ:
-    marathon = os.environ['marathon']
-
 while True:
 
     # Set up azure queue / get count of messages on queue (count).
@@ -27,10 +21,10 @@ while True:
             
     if "docker" in os.environ:
 
-        print("Docker")
+        # Get Docker address from environment variable
+        docker = os.environ['docker']
 
-        # Get Docker service from Docker API - check for service (docker_service)
-        
+        # Get Marathon task from API 
         if (requests.get(docker + "/services/" + docker_service)):
             service = json.loads((requests.get(docker + "/services/" + docker_service)).text)
             service_version = service['Version']['Index']
@@ -63,12 +57,11 @@ while True:
 
     if "marathon" in os.environ:
 
-        print("marathon")
+        # Get Docker address from environment variable
+        marathon = os.environ['marathon']
         
-        # Get marathon Task        
+        # Get Marathon task from API  
         if (requests.get(marathon + docker_service)):
-
-            # Get app information
             service = json.loads((requests.get(marathon + docker_service)).text)
             replica_count = service['app']['instances']
 
@@ -79,13 +72,14 @@ while True:
             # Output
             print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: " + str(replica_count) + " --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(start_workers_count))
 
+            # If zero workers are required, deleted task
             if needed_workers == 0:
 
                 requests.delete(marathon + docker_service)
 
             else:
 
-                # Scale app to meet queue / worker ratio - getting response 409 when needed = 0, may want to check for 0 and remove app.
+                # Scale app to meet queue / worker ratio
                 headers = {'Content-Type': 'application/json'}            
                 jstring = json.loads('{"id": "/stock-report","cmd": null,"cpus": 0.1,"mem": 32,"disk": 0,"instances":' + str(needed_workers) + ',"container": {"type": "DOCKER","volumes": [],"docker": {"image": "neilpeterson/stock-report-service","network": "BRIDGE","privileged": false,"parameters": [],"forcePullImage": false}}}')
                 post = requests.put(marathon + docker_service, data=json.dumps(jstring), headers=headers)
@@ -98,16 +92,10 @@ while True:
             # Output
             print("Items on Queue: " + str(count) + " --- Queue/Worker Ratio: " + queue_length +  " --- Current Workers: No Service --- Needed Workers: " + str(needed_workers) + " --- To Start: " + str(needed_workers))
 
+            # Verify task is actually needed
             if needed_workers != 0:
             
                 # Application does not exsist, create it
                 headers = {'Content-Type': 'application/json'}
                 jstring = json.loads('{"id": "/stock-report","cmd": null,"cpus": 0.1,"mem": 32,"disk": 0,"instances":' + str(needed_workers) + ',"container": {"type": "DOCKER","volumes": [],"docker": {"image": "neilpeterson/stock-report-service","network": "BRIDGE","privileged": false,"parameters": [],"forcePullImage": false}}}')
                 post = requests.put(marathon + docker_service, data=json.dumps(jstring), headers=headers)
-                
-
-
-
-
-
-
