@@ -7,3 +7,9 @@ dcos marathon app add https://raw.githubusercontent.com/neilpeterson/container-s
 
 ## Does not need to be started:
 dcos marathon app add https://raw.githubusercontent.com/neilpeterson/container-stock-app-service/master/marathon-app/stock-report-service.json
+
+## Some other helpful commands
+
+- dcos marathon app list
+- dcos marathon task list
+- dcos task log <app>
