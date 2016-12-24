@@ -24,6 +24,15 @@ div#logo {
     border-bottom: 1px solid black;   
 }
 
+div#host {
+    display:block;
+    margin: 0 auto;
+    width: 500px;
+    text-align: right;
+    font-size:20px;
+    font-family:Calibri;
+}
+
 div#image{
    display:block;
    background-image:url(../N5.jpg);

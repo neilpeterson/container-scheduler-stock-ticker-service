@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
+
+    
+
     <link href="Default.css" rel="stylesheet" />
     <title>Container Demo..</title>
 
@@ -25,6 +28,7 @@
             </center>
             </form>
         </div>
+        <div id="host"><?php echo gethostname(); ?></div>
     </div>
 </body>
 </html>
