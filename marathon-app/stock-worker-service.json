@@ -1,0 +1,23 @@
+{
+	"id": "/stock-worker-service",
+	"cmd": null,
+	"cpus": 0.1,
+	"mem": 32,
+	"disk": 0,
+	"instances": 1,
+	"env": {
+		"marathon": "http://172.16.0.5/marathon/v2/apps/",
+  		"queuelength": "2"
+	},
+	"container": {
+		"type": "DOCKER",
+		"volumes": [],
+		"docker": {
+			"image": "neilpeterson/stock-worker-service",
+			"network": "BRIDGE",
+			"privileged": false,
+			"parameters": [],
+			"forcePullImage": false
+		}
+	}
+}
