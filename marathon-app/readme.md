@@ -2,7 +2,7 @@
 
 ## These two will start the app:
 
-dcos marathon app add https://raw.githubusercontent.com/neilpeterson/container-stock-app-service/master/marathon-app/stock-front.json
+dcos marathon app add https://raw.githubusercontent.com/neilpeterson/container-stock-app-service/master/marathon-app/stock-front-lb.json
 
 dcos marathon app add https://raw.githubusercontent.com/neilpeterson/container-stock-app-service/master/marathon-app/stock-worker-service.json
 

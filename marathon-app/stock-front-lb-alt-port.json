@@ -1,0 +1,32 @@
+{
+  "id": "stockfront-lb",
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "neilpeterson/stock-front",
+      "network": "BRIDGE",
+      "portMappings": [
+        { "hostPort": 0, "containerPort": 80, "servicePort": 10000 }
+      ],
+      "forcePullImage":true
+    }
+  },
+  "instances": 2,
+  "cpus": 0.1,
+  "mem": 32,
+  "healthChecks": [{
+      "protocol": "HTTP",
+      "path": "/",
+      "portIndex": 0,
+      "timeoutSeconds": 10,
+      "gracePeriodSeconds": 10,
+      "intervalSeconds": 2,
+      "maxConsecutiveFailures": 10
+  }],
+  "labels":{
+    "HAPROXY_GROUP":"external",
+    "HAPROXY_0_VHOST":"40.85.181.251",
+    "HAPROXY_0_MODE":"http",
+    "HAPROXY_0_PORT":"82"
+  }
+}
