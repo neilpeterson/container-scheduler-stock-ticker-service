@@ -42,10 +42,14 @@ def sendemail ( to_email, from_email, password, subject, body):
 
 def getstockprice (stockurl, symbol):
 
-    r = requests.get(stockurl + symbol)
-    s = json.loads(r.text[18:-1])
-    price = (s['LastPrice'])
-    return price
+    try:
+        r = requests.get(stockurl + symbol)
+        s = json.loads(r.text[18:-1])
+        price = (s['LastPrice'])
+        #print(r.text[18:-1])
+        return price
+    except:
+        print("Request Error - will retry")
 
 def deletemessage (messageid, popreceipt):
     queue_service = QueueService(account_name=azurestoracct, account_key=azurequeuekey)
@@ -72,13 +76,11 @@ while True:
           
                 emailbody.append(symbol + ' = ' + str(stockquote) + '\n')                
             
-            #else:
-
-                #print("else")
-
         if emailbody:
             sendemail (email, gmuser, gmpass, hostname, emailbody)
-            del emailbody[:] 
+            del emailbody[:]
 
-        # Delete message from queue.
-        deletemessage(message.id, message.pop_receipt)
+            # Delete message from queue.
+            deletemessage(message.id, message.pop_receipt) 
+
+        
