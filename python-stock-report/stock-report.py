@@ -7,8 +7,6 @@ import smtplib
 import socket
 import time
 
-# TODO - test all of this, move parse into function, move delete message (queue) into functon, deal with http exceptions.
-
 # variables and enumerate list
 stockurl = "http://dev.markitondemand.com/MODApis/Api/v2/Quote/jsonp?symbol="
 gmpass = os.environ['gmpass']
@@ -16,13 +14,12 @@ gmuser = os.environ['gmuser']
 azurestoracct = os.environ['azurestoracct']
 azurequeue = os.environ['azurequeue']
 azurequeuekey = os.environ['azurequeuekey'] + "==;"
-l = []
+emailbody = []
 
 # get host name (container id)
-h = socket.gethostname()
+hostname = socket.gethostname()
 
 # functions
-
 def getmessage ():
 
     # Get messages from Azure queue.
@@ -30,7 +27,7 @@ def getmessage ():
     messages = queue_service.get_messages(azurequeue, num_messages=5)
     return messages
 
-def sendemail ( to_email, from_email, password, subject ):
+def sendemail ( to_email, from_email, password, subject, body):
 
     # Send email - stock report.
     smtpserver = smtplib.SMTP("smtp.gmail.com",587)
@@ -39,7 +36,7 @@ def sendemail ( to_email, from_email, password, subject ):
     smtpserver.ehlo()
     smtpserver.login(from_email, password)
     header = 'To:' + to_email  + '\n' + 'From: ' + from_email + '\n' + 'Subject:' + subject + '\n'
-    msg = header + ''.join(l)
+    msg = header + ''.join(body)
     smtpserver.sendmail(from_email, to_email, msg)
     smtpserver.close()
 
@@ -50,9 +47,9 @@ def getstockprice (stockurl, symbol):
     price = (s['LastPrice'])
     return price
 
-def deletemessage (id, popreceipt):
+def deletemessage (messageid, popreceipt):
     queue_service = QueueService(account_name=azurestoracct, account_key=azurequeuekey)
-    queue_service.delete_message(azurequeue, message.id, message.pop_receipt) 
+    queue_service.delete_message(azurequeue, messageid, popreceipt) 
 
 while True:
   
@@ -70,29 +67,18 @@ while True:
         for symbol in symbols:
                 
             stockquote = getstockprice (stockurl, symbol)
-
-            print(s[1])
-                            
+                       
             if stockquote:
-
-                #print(s[0])
+          
+                emailbody.append(symbol + ' = ' + str(stockquote) + '\n')                
             
-                l.append(symbol + ' = ' + str(stockquote) + '\n')
+            #else:
 
-                print(stockquote)
+                #print("else")
 
-                # Delete message from queue.
-                deletemessage(message.id, message.pop_receipt)
-                #queue_service.delete_message(azurequeue, message.id, message.pop_receipt)
+        if emailbody:
+            sendemail (email, gmuser, gmpass, hostname, emailbody)
+            del emailbody[:] 
 
-                # Send email - stock report.
-                #sendemail (email, gmuser, gmpass, h)
-
-                print("email sent")
-
-                # Clear stock report list.
-                del l[:]                    
-            
-            else:
-
-                print("else")
+        # Delete message from queue.
+        deletemessage(message.id, message.pop_receipt)
