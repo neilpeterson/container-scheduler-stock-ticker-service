@@ -27,7 +27,7 @@ def getmessage ():
     messages = queue_service.get_messages(azurequeue, num_messages=5)
     return messages
 
-def sendemail ( to_email, from_email, password, subject, body):
+def sendemail (to_email, from_email, password, subject, body):
 
     # Send email - stock report.
     smtpserver = smtplib.SMTP("smtp.gmail.com",587)
