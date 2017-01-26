@@ -10,7 +10,7 @@ The purpose of this application is to demonstrate the benefits of container tech
 
 ## Architecture
 
-![app](./media/stock-app.png)
+![app](./media/stock-app-service.png)
 
 ## Prerequisites
 
